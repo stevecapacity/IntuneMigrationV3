@@ -48,17 +48,40 @@ Write-Host "MS Graph Authenticated"
 # Get Device and user info
 $serialNumber = Get-WmiObject -Class Win32_Bios | Select-Object -ExpandProperty serialNumber
 
-$intuneObject = Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/beta/deviceManagement/managedDevices?`$filter=contains(serialNumber,'$($serialNumber)')" -Headers $headers
+$hostname = $env:COMPUTERNAME
 
-$IntuneDeviceId = $intuneObject.value.id
-Write-Host "Intune Device ID is $($IntuneDeviceId)"
+Write-Host "Getting Intune ID for $($hostname) in $($tenant)..."
+
+try 
+{
+    $intuneObject = Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/beta/deviceManagement/managedDevices?`$filter=contains(serialNumber,'$($serialNumber)')" -Headers $headers
+    Write-Host "$($hostname) Intune object found."
+    $intuneID = $intuneObject.value.id
+    Write-Host "Intune ID is $($intuneID)"
+}
+catch 
+{
+    Write-Host "Could not retrieve Intune object for $($hostname)"
+    Write-Host "StatusCode:" $_.Exception.Response.StatusCode.value__ 
+    Write-Host "StatusDescription:" $_.Exception.Response.StatusDescription
+}
 
 $userName = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI" -name "LastLoggedOnDisplayName"
 Write-Host "Getting current user $($userName) Azure AD object ID..."
 
-$userObject = Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/beta/users?`$filter=displayName eq '$($userName)'" -Headers $headers
-$userId = $userObject.value.id
-Write-Host "Azure AD user object ID for $($userName) is $($userId)"
+try 
+{
+    $userObject = Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/beta/users?`$filter=displayName eq '$($userName)'" -Headers $headers
+    $userId = $userObject.value.id
+    Write-Host "Azure AD user object ID for $($userName) is $($userId)"
+}
+catch 
+{
+    Write-Host "Could not retrieve Azure object for $($username)"
+    Write-Host "StatusCode:" $_.Exception.Response.StatusCode.value__ 
+    Write-Host "StatusDescription:" $_.Exception.Response.StatusDescription
+}
+
 
 # Get user URI REF and construct JSON body for graph call
 $deviceUsersUri = "https://graph.microsoft.com/beta/deviceManagement/managedDevices('$intuneDeviceId')/users/`$ref"
@@ -68,9 +91,20 @@ $id = "@odata.id"
 $JSON = @{ $id="$userUri" } | ConvertTo-Json -Compress
 
 # POST primary user in graph
-Invoke-RestMethod -Method Post -Uri $deviceUsersUri -Headers $headers -Body $JSON -ContentType "application/json"
+Write-Host "Setting $($username) as primary user on $($hostname)..."
+try 
+{
+    Invoke-RestMethod -Method Post -Uri $deviceUsersUri -Headers $headers -Body $JSON -ContentType "application/json"
+    Start-Sleep -Seconds 2 
+    Write-Host "$($username) has been set as the primary user for $($hostname)"  
+}
+catch 
+{
+    Write-Host "Could not set $($user) as primary user for $($hostname)"
+    Write-Host "StatusCode:" $_.Exception.Response.StatusCode.value__ 
+    Write-Host "StatusDescription:" $_.Exception.Response.StatusDescription
+}
 
-Start-Sleep -Seconds 3
 
 # Disable Task
 Disable-ScheduledTask -TaskName "SetPrimaryUser"
