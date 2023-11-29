@@ -1,0 +1,29 @@
+{
+    "localPath":"C:\\ProgramData\\IntuneMigration",
+    "sourceTenant": {
+        "clientID":"<SOURCE CLIENT ID>",
+        "clientSecret":"<SOURCE CLIENT SECRET>",
+        "tenantName":"<SOURCE TENANT NAME>",
+        "domainCredentials":{
+            "domainUser":"<DOMAIN CREDENTIALS>",
+            "domainPassword":"<DOMAIN PASSWORD>"
+        }
+    },
+    "targetTenant":{
+        "clientID":"<TARGET CLIENT ID>",
+        "clientSecret":"<TARGET CLIENT SECRET>",
+        "tenantName":"<TARGET TENANT NAME>",
+        "tenantID":"<TARGET TENANT ID>"
+    },
+    "storageAccountName":"<AZURE STORAGE ACCOUNT NAME>",
+    "storageAccountKey":"<AZURE STORAGE ACCOUNT KEY",
+    "locations":[
+        "appdata\\local",
+        "appdata\\roaming",
+        "documents",
+        "downloads",
+        "desktop",
+        "pictures"
+    ],
+    "regPath":"HKLM\\SOFTWARE\\IntuneMigration"
+}
