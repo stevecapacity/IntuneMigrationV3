@@ -18,14 +18,6 @@ Start-Transcript -Path $log -Verbose
 Write-Host "BEGIN LOGGING GROUP TAG..."
 
 # Add Group Tag from Autopilot device in Tenant A to Azure AD object in Tenant B
-<#PERMISSIONS NEEDED FOR APP REG:
-Device.ReadWrite.All
-DeviceManagementApps.ReadWrite.All
-DeviceManagementConfiguration.ReadWrite.All
-DeviceManagementManagedDevices.PrivilegedOperations.All
-DeviceManagementManagedDevices.ReadWrite.All
-DeviceManagementServiceConfig.ReadWrite.All
-#>
 
 # App reg info for tenant B
 $clientId = $settings.targetTenant.clientID
@@ -64,18 +56,37 @@ Write-Host "Group Tag is $($oldTag)"
 $serialNumber = Get-WmiObject -Class Win32_Bios | Select-Object -ExpandProperty serialNumber
 
 # Get graph info
-Write-Host "Getting information from Microsoft Graph.  Looking for Intune object ID..."
+Write-Host "Getting information from Microsoft Graph.  Looking for Azure device ID..."
 
-$intuneObject = Invoke-RestMethod -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/managedDevices?`$filter=contains(serialNumber,'$($serialNumber)')" -Headers $headers
-Write-Host "Intune object ID is $($intuneObject)"
+try 
+{
+    $intuneObject = Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/beta/deviceManagement/managedDevices?`$filter=contains(serialNumber,'$($serialNumber)')" -Headers $headers
+    Write-Host "$($hostname) Intune object found."
+    $aadDeviceId = $intuneObject.value.azureADDeviceId
+    Write-Host "Azure device ID is $($aadDeviceId)"
+}
+catch 
+{
+    Write-Host "Could not retrieve AAD device ID for $($hostname)"
+    Write-Host "StatusCode:" $_.Exception.Response.StatusCode.value__ 
+    Write-Host "StatusDescription:" $_.Exception.Response.StatusDescription
+}
 
-$aadDeviceId = $intuneObject.value.azureADDeviceId
+
 Write-Host "Getting Azure AD object..."
 
-
-$aadObject = Invoke-RestMethod -Method GET -Uri "https://graph.microsoft.com/beta/devices?`$filter=deviceId eq '$($aadDeviceId)'" -Headers $headers
-$aadObjectId = $aadObject.value.id
-Write-Host "Azure AD object ID is $($aadObjectId)"
+try
+{
+    $aadObject = Invoke-RestMethod -Method GET -Uri "https://graph.microsoft.com/beta/devices?`$filter=deviceId eq '$($aadDeviceId)'" -Headers $headers
+    $aadObjectId = $aadObject.value.id
+    Write-Host "Azure AD object ID is $($aadObjectId)"
+}
+catch
+{
+    Write-Host "Could not retrieve AAD object ID for $($hostname)"
+    Write-Host "StatusCode:" $_.Exception.Response.StatusCode.value__ 
+    Write-Host "StatusDescription:" $_.Exception.Response.StatusDescription
+}
 
 # Place group tag in correct format and add to existing physical IDs
 
@@ -90,10 +101,20 @@ $body = @{
 } | ConvertTo-Json
 
 # PATCH to graph
+Write-Host "Adding Group Tag $($oldTag) to $($hostname) in $($tenant)..."
+try 
+{
+    Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/devices/$($aadObjectId)" -Method Patch -Headers $headers -Body $body
+    Start-Sleep -Seconds 2
+    Write-Host "Successfully added Group Tag $($oldTag) to $($hostname) in $($tenant)"
+}
+catch 
+{
+    Write-Host "Could not add $($oldTag) to $($hostname)"
+    Write-Host "StatusCode:" $_.Exception.Response.StatusCode.value__ 
+    Write-Host "StatusDescription:" $_.Exception.Response.StatusDescription
+}
 
-Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/devices/$($aadObjectId)" -Method Patch -Headers $headers -Body $body
-
-Start-Sleep -Seconds 3
 
 # Disable Task
 Disable-ScheduledTask -TaskName "GroupTag"

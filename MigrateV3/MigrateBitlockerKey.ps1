@@ -21,8 +21,19 @@ Write-Host "BEGIN LOGGING MIGRATE BITLOCKER..."
 
 $BLV = Get-BitLockerVolume -MountPoint "C:"
 Write-Host "Retrieving BitLocker Volume $($BLV)"
-BackupToAAD-BitLockerKeyProtector -MountPoint "C:" -KeyProtectorId $BLV.KeyProtector[1].KeyProtectorId
-Write-Host "Backing up BitLocker Key to AAD"
+
+Write-Host "Backing up BitLocker Key to AAD..."
+try 
+{
+    BackupToAAD-BitLockerKeyProtector -MountPoint "C:" -KeyProtectorId $BLV.KeyProtector[1].KeyProtectorId
+    Start-Sleep -Seconds 2
+    Write-Host "Successfully backed up BitLocker Key to $($tenant) AAD"    
+}
+catch 
+{
+    $message = $_
+    Write-Host "Error backing up BitLocker key to $($tenant) AAD: $message"
+}
 
 #now delete scheduled task
 Disable-ScheduledTask -TaskName "MigrateBitlockerKey"

@@ -32,6 +32,7 @@ $locations = $settings.locations
 $activeUsername = (Get-WMIObject Win32_ComputerSystem | Select-Object username).username
 $currentUser = $activeUsername -replace '.*\\'
 
+
 # Migrate data based on MigrateMethod data point
 if($migrateMethod -eq "local")
 {
