@@ -10,6 +10,7 @@ if ("$env:PROCESSOR_ARCHITEW6432" -ne "ARM64")
 }
 
 $settings = Get-Content -Path "$($PSScriptRoot)\settings.json" | ConvertFrom-Json
+$hostname = $env:COMPUTERNAME
 
 $localPath = $settings.localPath
 
