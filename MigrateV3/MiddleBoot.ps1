@@ -11,23 +11,24 @@ Write-Host "BEGIN LOGGING MIDDLEBOOT..."
 
 # Rename the Tenant A user profile, disable the MiddleBoot task, and reboot
 
-# Get Tenant A user profile directory name from XML file
+# Get Tenant A user profile directory name from registry file
 Write-Host "Getting Tenant A user profile name"
 $regPath = $settings.regPath
 $key = "Registry::$regPath"
 
 $user = Get-ItemPropertyValue -Path $key -Name Username
 Write-Host "Current user directory name is C:\Users\$($user)"
+$userSID = Get-ItemPropertyValue -Path $key -Name UserSID
+Write-Host "Current userSID is $($userSID)"
 
-# Rename directory
+# Remove directory
 $currentDirectory = "C:\Users\$($user)"
-$renamedDirectory = "C:\Users\OLD_$($user)"
 if($user -ne $null)
 {
 	if(Test-Path $currentDirectory)
 	{
-		Rename-Item -Path $currentDirectory -NewName $renamedDirectory
-		Write-Host "Renaming path $($currentDirectory) to $($renamedDirectory)"
+		Remove-Item -Path $currentDirectory -Recurse -Force
+		Write-Host "Removed $($currentDirectory)"
 	}
 	else 
 	{
@@ -36,8 +37,21 @@ if($user -ne $null)
 }
 else
 {
-	Write-Host "Cannot rename directory"
+	Write-Host "$($currentDirectory) could not be removed"
 }
+
+if($userSID -ne $null)
+{
+	$userSIDPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\$($userSID)"
+	Remove-Item -Path $($userSIDPath) -Force
+	Write-Host "Successfully removed $($userSIDPath)"
+}
+else 
+{
+	Write-Host "Could not delete $($userSIDPath) from registry"
+}
+
+
 
 
 # Disable MiddleBoot task

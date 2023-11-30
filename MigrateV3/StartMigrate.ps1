@@ -166,11 +166,15 @@ else
 	$activeUserName = (Get-WmiObject -Class Win32_ComputerSystem | Select-Object username).username
 	$user = $activeUsername -replace '.*\\'
 	Write-Host "Current user is $($user)"
-
+	Write-Host "Getting current user SID..."
+	$objUser = New-Object System.Security.Principal.NTAccount("$activeUsername")
+	$strSID = $objUser.Translate([System.Security.Principal.SecurityIdentifier])
+	$activeUserSID = $strSID.Value
 	Write-Host "Writing variables to registry"
 	reg.exe add $regPath /v GroupTag /t REG_EXPAND_SZ /d $groupTag /f | Out-Host
 	reg.exe add $regPath /v Username /t REG_EXPAND_SZ /d $user /f | Out-Host
 	reg.exe add $regPath /v MigrateMethod /t REG_EXPAND_SZ /d $migrateMethod /f | Out-Host
+	reg.exe add $regPath /v UserSID /t REG_SZ /d $activeUserSID /f | Out-Host
 
 }
 <# =================================================================================================#>

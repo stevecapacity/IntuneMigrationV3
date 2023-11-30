@@ -82,6 +82,10 @@ Write-Host "MS Graph Authenticated"
 $activeUsername = (Get-WMIObject Win32_ComputerSystem | Select-Object username).username
 $user = $activeUsername -replace '.*\\'
 Write-Host "Current active user is $($user)"
+Write-Host "Getting current user SID..."
+$objUser = New-Object System.Security.Principal.NTAccount("$activeUsername")
+$strSID = $objUser.Translate([System.Security.Principal.SecurityIdentifier])
+$activeUserSID = $strSID.Value
 $currentDomain = (Get-WmiObject Win32_ComputerSystem | Select-Object Domain).Domain
 
 # Get hostname
@@ -411,6 +415,10 @@ Write-Host "Set MigrateMethod to $($migrateMethod) at $($regPath)"
 
 reg.exe add $regPath /v Username /t REG_SZ /d $user /f | Out-Host
 Write-Host "Set Username to $($user) at $($regPath)"
+
+reg.exe add $regPath /v UserSID /t REG_SZ /d $activeUserSID /f | Out-Host
+Write-Host "Set UserSID to $($activeUserSID) at $($regPath)"
+
 
 if($intuneID -ne $null)
 {
