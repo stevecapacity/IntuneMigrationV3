@@ -77,7 +77,7 @@ catch
 
 
 # Get user URI REF and construct JSON body for graph call
-$deviceUsersUri = "https://graph.microsoft.com/beta/deviceManagement/managedDevices('$intuneDeviceId')/users/`$ref"
+$deviceUsersUri = "https://graph.microsoft.com/beta/deviceManagement/managedDevices('$intuneID')/users/`$ref"
 $userUri = "https://graph.microsoft.com/beta/users/" + $userId
 
 $id = "@odata.id"
