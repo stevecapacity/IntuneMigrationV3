@@ -170,12 +170,18 @@ else
 	$objUser = New-Object System.Security.Principal.NTAccount("$activeUsername")
 	$strSID = $objUser.Translate([System.Security.Principal.SecurityIdentifier])
 	$activeUserSID = $strSID.Value
-	Write-Host "Writing variables to registry"
-	reg.exe add $regPath /v GroupTag /t REG_EXPAND_SZ /d $groupTag /f | Out-Host
-	reg.exe add $regPath /v Username /t REG_EXPAND_SZ /d $user /f | Out-Host
-	reg.exe add $regPath /v MigrateMethod /t REG_EXPAND_SZ /d $migrateMethod /f | Out-Host
-	reg.exe add $regPath /v UserSID /t REG_SZ /d $activeUserSID /f | Out-Host
+	Write-Host "Writing variables to registry..."
+	reg.exe add $regPath /v GroupTag /t REG_SZ /d $groupTag /f /reg:64 | Out-Host
+	Write-Host "Set GroupTag to $($groupTag) at $($regPath)"
 
+	reg.exe add $regPath /v Username /t REG_SZ /d $user /f /reg:64 | Out-Host
+	Write-Host "Set Username to $($user) at $($regPath)"
+
+	reg.exe add $regPath /v MigrateMethod /t REG_SZ /d $migrateMethod /f /reg:64 | Out-Host
+	Write-Host "Set MigrateMethod to $($migrateMethod) at $($regPath)"
+
+	reg.exe add $regPath /v UserSID /t REG_SZ /d $activeUserSID /f /reg:64 | Out-Host
+	Write-Host "Set UserSID to $($activeUserSID) at $($regPath)"
 }
 <# =================================================================================================#>
 #### SET REQUIRED POLICY ####

@@ -1,3 +1,4 @@
+
 # Create and start log file
 
 $settings = Get-Content -Path "$($PSScriptRoot)\settings.json" | ConvertFrom-Json
@@ -21,6 +22,59 @@ Write-Host "Current user directory name is C:\Users\$($user)"
 $userSID = Get-ItemPropertyValue -Path $key -Name UserSID
 Write-Host "Current userSID is $($userSID)"
 
+$cacheRegPaths = @(
+	"HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList",
+	"HKLM:\SOFTWARE\Microsoft\IdentityStore\Cache",
+	"HKLM:\SOFTWARE\Microsoft\IdentityStore\Cache\S-1-5-18\IdentityCache",
+	"HKLM:\SOFTWARE\Microsoft\IdentityStore\Cache\S-1-5-19\IdentityCache",
+	"HKLM:\SOFTWARE\Microsoft\IdentityStore\Cache\S-1-5-20\IdentityCache",
+	"HKLM:\SOFTWARE\Microsoft\IdentityStore\Cache\S-1-5-90-0-2\IdentityCache"
+)
+
+foreach($path in $cacheRegPaths)
+{
+	$deletePath = "$($path)\$($userSID)"
+	if($deletePath -ne $null)
+	{
+		Write-Host "Removing $($deletePath) registry path..."
+		try 
+		{
+			Remove-Item -Path $deletePath -Force -Recurse
+			Write-Host "Successfully removed $($deletePath)"
+		}
+		catch 
+		{
+			$message = $_
+			Write-Host "Error removing $($deletePath): $message"
+		}
+	}
+	else
+	{
+		Write-Host "$($deletePath) not found."
+	}
+}
+
+# Remove logon cache
+$logonCache = "HKLM:\SOFTWARE\Microsoft\IdentityStore\LogonCache"
+if($logonCache -ne $null)
+{
+	Write-Host "Removing $($logonCache) from registry..."
+	try 
+	{
+		Remove-Item -Path $logonCache -Force -Recurse
+		Write-Host "Successfully removed $($logonCache)"
+	}
+	catch 
+	{
+		$message = $_
+		Write-Host "Error removing $($logonCache): $message"
+	}
+}
+else
+{
+	Write-Host "$($logonCache) not found in registry."
+}
+
 # Remove directory
 $currentDirectory = "C:\Users\$($user)"
 if($user -ne $null)
@@ -39,20 +93,6 @@ else
 {
 	Write-Host "$($currentDirectory) could not be removed"
 }
-
-if($userSID -ne $null)
-{
-	$userSIDPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\$($userSID)"
-	Remove-Item -Path $($userSIDPath) -Force
-	Write-Host "Successfully removed $($userSIDPath)"
-}
-else 
-{
-	Write-Host "Could not delete $($userSIDPath) from registry"
-}
-
-
-
 
 # Disable MiddleBoot task
 Disable-ScheduledTask -TaskName "MiddleBoot"
