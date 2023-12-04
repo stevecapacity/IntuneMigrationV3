@@ -9,6 +9,14 @@ DeviceManagementManagedDevices.ReadWrite.All
 DeviceManagementServiceConfig.ReadWrite.All
 #>
 # If we are running as a 32-bit process on an x64 system, re-launch as a 64-bit process
+if ("$env:PROCESSOR_ARCHITEW6432" -ne "ARM64")
+{
+    if (Test-Path "$($env:WINDIR)\SysNative\WindowsPowerShell\v1.0\powershell.exe")
+    {
+        & "$($env:WINDIR)\SysNative\WindowsPowerShell\v1.0\powershell.exe" -ExecutionPolicy bypass -NoProfile -File "$PSCommandPath"
+        Exit $lastexitcode
+    }
+}
 
 $ErrorActionPreference = 'SilentlyContinue'
 $settings = Get-Content -Path "$($PSScriptRoot)\settings.json" | ConvertFrom-Json
@@ -171,16 +179,16 @@ else
 	$strSID = $objUser.Translate([System.Security.Principal.SecurityIdentifier])
 	$activeUserSID = $strSID.Value
 	Write-Host "Writing variables to registry..."
-	reg.exe add $regPath /v GroupTag /t REG_SZ /d $groupTag /f /reg:64 | Out-Host
+	reg.exe add $regPath /v GroupTag /t REG_SZ /d $groupTag /f | Out-Host
 	Write-Host "Set GroupTag to $($groupTag) at $($regPath)"
 
-	reg.exe add $regPath /v Username /t REG_SZ /d $user /f /reg:64 | Out-Host
+	reg.exe add $regPath /v Username /t REG_SZ /d $user /f | Out-Host
 	Write-Host "Set Username to $($user) at $($regPath)"
 
-	reg.exe add $regPath /v MigrateMethod /t REG_SZ /d $migrateMethod /f /reg:64 | Out-Host
+	reg.exe add $regPath /v MigrateMethod /t REG_SZ /d $migrateMethod /f | Out-Host
 	Write-Host "Set MigrateMethod to $($migrateMethod) at $($regPath)"
 
-	reg.exe add $regPath /v UserSID /t REG_SZ /d $activeUserSID /f /reg:64 | Out-Host
+	reg.exe add $regPath /v UserSID /t REG_SZ /d $activeUserSID /f | Out-Host
 	Write-Host "Set UserSID to $($activeUserSID) at $($regPath)"
 }
 <# =================================================================================================#>
@@ -306,7 +314,7 @@ Write-Host "Removed previous Intune enrollment"
 # Remove device from Current Azure AD and Intune environment
 
 Write-Host "Leaving the $($tenant) Azure AD and Intune environment"
-Start-Process "C:\Windows\sysnative\dsregcmd.exe" -ArgumentList "/leave"
+Start-Process "C:\Windows\System32\dsregcmd.exe" -ArgumentList "/leave"
 
 # Check if device is domain joined
 Write-Host "Check if $($hostname) is local Domain Joined..."
