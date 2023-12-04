@@ -89,7 +89,7 @@ $headers.Add("Content-Type", "application/json")
 Write-Host "MS Graph Authenticated"
 
 <# =================================================================================================#>
-#### IMPORT XML ####
+#### IMPORT VARIABLES ####
 <# =================================================================================================#>
 # Check if premigrate was run or if migration is starting from StartMigrate
 $hostname = $env:COMPUTERNAME
