@@ -3,14 +3,44 @@
 
 
 $settings = Get-Content -Path "$($PSScriptRoot)\settings.json" | ConvertFrom-Json
-
 $localPath = $settings.localPath
+
 
 $log = "$($localPath)\restoreProfile.log"
 Start-Transcript -Path $log -Verbose
 Write-Host "BEGIN LOGGING RESTORE PROFILE..."
 
 $ErrorActionPreference = 'SilentlyContinue'
+# Install toast modules
+$modules = @(
+	'BurntToast',
+	'RunAsUser'
+)
+
+foreach($module in $modules)
+{
+	Write-Host "Checking for $($module) PowerShell module..."
+	$installed = Get-InstalledModule -Name $module -ErrorAction Ignore
+	if(-not($installed))
+	{
+		Write-Host "$($module) module not found- installing now..."
+		try {
+			Install-Module -Name $module -Confirm:$false -Force
+			Import-Module $module
+			Write-Host "$($module) was installed."
+		}
+		catch {
+			$message = $_
+			Write-Host "Error installing $($module) PowerShell module: $message"
+		}
+	}
+	else {
+		Import-Module $module
+		Write-Host "$($module) is already installed."
+	}
+}
+
+
 # Check if migrating data
 Write-Host "Checking migration method..."
 
@@ -25,10 +55,25 @@ $locations = $settings.locations
 $activeUsername = (Get-WMIObject Win32_ComputerSystem | Select-Object username).username
 $currentUser = $activeUsername -replace '.*\\'
 
+$scriptBlockStart = {
+	$header = New-BTHeader -Title "Intune Migration"
+	$button = New-BTButton -Content "Dismiss" -Dismiss
+	$text = "Restoring your data- sit tight!"
+	$progress = New-BTProgressBar -Status "Copying files..." -Indeterminate
+	New-BurntToastNotification -Text $text -Header $header -Button $button -ProgressBar $progress
+}
+
+$scriptBlockFinish = {
+	$header = New-BTHeader -Title "Intune Migration"
+	$button = New-BTButton -Content "Dismiss" -Dismiss
+	$text = "Congrats!  Your data is restored.  PC will reboot now..."
+	New-BurntToastNotification -Text $text -Header $header -Button $button
+}
 
 # Migrate data based on MigrateMethod data point
 if($migrateMethod -eq "local")
 {
+	Invoke-AsCurrentUser -ScriptBlock $scriptBlockStart -UseWindowsPowerShell
 	Write-Host "Migration method is local.  Migrating from Public directory..."
 	foreach($location in $locations)
 	{
@@ -39,9 +84,11 @@ if($migrateMethod -eq "local")
   		Remove-Item -Path $publicPath -Recurse -Force
 	}
 	Write-Host "$($currentUser) data is restored"
+	Invoke-AsCurrentUser -ScriptBlock $scriptBlockFinish -UseWindowsPowerShell
 }
 elseif ($migrateMethod -eq "blob") 
 {
+	Invoke-AsCurrentUser -ScriptBlock $scriptBlockStart -UseWindowsPowerShell
 	Write-Host "Migration method is blob storage.  Connecting to AzBlob storage account..."
 	$storageAccountName = $settings.storageAccountName
 	$storageAccountKey = $settings.storageAccountKey
@@ -166,6 +213,7 @@ elseif ($migrateMethod -eq "blob")
 		}
 	}
 	Write-Host "User data restored from blob storage"
+	Invoke-AsCurrentUser -ScriptBlock $scriptBlockFinish -UseWindowsPowerShell
 }
 else
 {
