@@ -97,7 +97,7 @@ $hostname = $env:COMPUTERNAME
 
 $regPath = $settings.regPath
 $key = "Registry::$regPath"
-$preMigrate = Get-ItemPropertyValue -Path $key -Name GUID -ErrorAction Ignore 
+$preMigrate = Get-ItemPropertyValue -Path $key -Name GUID
 if($preMigrate -ne $null)
 {
 	Write-Host "Premigration process has run.  Importing device properties..."
