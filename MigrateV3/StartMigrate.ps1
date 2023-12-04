@@ -97,8 +97,8 @@ $hostname = $env:COMPUTERNAME
 
 $regPath = $settings.regPath
 $key = "Registry::$regPath"
-$preMigrate = Get-ItemPropertyValue -Path $key -Name GUID
-if($preMigrate -ne $null)
+$preMigrate = "$($localPath)\preMigrateInstalled.txt"
+if($preMigrate)
 {
 	Write-Host "Premigration process has run.  Importing device properties..."
 	$intuneID = Get-ItemPropertyValue -Path $key -Name IntuneID
