@@ -110,7 +110,7 @@ try
 {
     Add-AutopilotImportedDevice -serialNumber $ser -hardwareIdentifier $hwid -groupTag $groupTag
     Start-Sleep -Seconds 3
-    Write-Hosto "$($hostname) successfully registered to $($tenant) Autopilot."
+    Write-Host "$($hostname) successfully registered to $($tenant) Autopilot."
 }
 catch
 {
