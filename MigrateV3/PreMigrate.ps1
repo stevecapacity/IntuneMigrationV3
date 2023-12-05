@@ -202,7 +202,7 @@ if($freeSpace -gt $localRequiredSpace)
     {   
         $userLocation = "C:\Users\$($user)\$($location)"
         $backupLocation = "C:\Users\Public\Temp\$($location)"
-        $aadBrokerFolder = Get-ChildItem -Path "$($userLocation)\Packages" | Where-Object {$_.Name -match "Microsoft.AAD.BrokerPlugin_*"} | Select-Object -ExpandProperty Name
+        $aadBrokerFolder = Get-ChildItem -Path "$($userLocation)\Packages" -ErrorAction SilentlyContinue | Where-Object {$_.Name -match "Microsoft.AAD.BrokerPlugin_*"} | Select-Object -ExpandProperty Name
         $aadBrokerPath = "$($userLocation)\Packages\$($aadBrokerFolder)"
         if(!(Test-Path $backupLocation))
         {
@@ -301,7 +301,7 @@ elseif($freeSpace -gt $blobRequiredSpace)
             $blobName = $blobLocation -replace '\\'
             Write-Host "Removed special character from $($blobName)"
             $backupLocation = "$($localPath)\$($blobName)"
-            $aadBrokerFolder = Get-ChildItem -Path "$($userLocation)\Packages" | Where-Object {$_.Name -match "Microsoft.AAD.BrokerPlugin_*"} | Select-Object -ExpandProperty Name
+            $aadBrokerFolder = Get-ChildItem -Path "$($userLocation)\Packages" -ErrorAction SilentlyContinue | Where-Object {$_.Name -match "Microsoft.AAD.BrokerPlugin_*"} | Select-Object -ExpandProperty Name
             $aadBrokerPath = "$($userLocation)\Packages\$($aadBrokerFolder)"
             if(!(Test-Path $backupLocation))
             {
