@@ -64,6 +64,18 @@ https://apps.microsoft.com/detail/9NBLGGH4TX22?hl=en-US&gl=US
 Instructions for generating the package and troubleshooting can be found here:
 https://www.getrubix.com/blog/tenant-to-tenant-intune-device-migration-part-4-the-bulk-token
 
+## Application registrations
+App registrations are created in both **Tenant A** and **Tenant B**. This will be the primary means of authenticating objects throughout the various scripts used in the process.
+
+Both registratinos will require the following permissions:
+* Device.ReadWrite.All
+* DeviceManagementApps.ReadWrite.All
+* DeviceManagementConfiguration.ReadWrite.All
+* DeviceManagementManagedDevices.PrivilegedOperations.All
+* DeviceManagementManagedDevices.ReadWrite.All
+* DeviceManagementServiceConfig.ReadWrite.All
+* User.ReadWrite.All
+
 ## Migration solution overview
 Tenant to tenant Microsoft Intune device migration As more and more organizations adopt Intune to manage PCs, this was an inevitable scenario. Companies can split into several companies, business acquire new businesses, organizations divest; all reasons you may need to move a PC to a different tenant. This isn’t new, as Active Directory domain migrations are a prevalent process.
 
@@ -102,14 +114,3 @@ We will then assume the following about **Tenant B**:
 * Users have a minimum license of Intune and Azure AD Premium P1
 * Intune has been configured to support the desired configurations, applications, and policy to support devices
 
-## Application registrations
-App registrations are created in both **Tenant A** and **Tenant B**. This will be the primary means of authenticating objects throughout the various scripts used in the process.
-
-Both registratinos will require the following permissions:
-* Device.ReadWrite.All
-* DeviceManagementApps.ReadWrite.All
-* DeviceManagementConfiguration.ReadWrite.All
-* DeviceManagementManagedDevices.PrivilegedOperations.All
-* DeviceManagementManagedDevices.ReadWrite.All
-* DeviceManagementServiceConfig.ReadWrite.All
-* User.ReadWrite.All
