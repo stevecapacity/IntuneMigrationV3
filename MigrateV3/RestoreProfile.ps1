@@ -92,7 +92,7 @@ elseif ($migrateMethod -eq "blob")
 			Write-Host "Extracting data from $($tempDataPath)\$($blob) to $($publicPath)..."
 			try 
 			{
-				Expand-Archive -Path "$($tempDataPath)\$($blob)" -DestinationPath $publicPath -Force | Out-Null
+				Start-Process "$($localPath)\7zr.exe" -ArgumentList "x $($tempDataPath)\$($blob) -o$publicPath -y" -Wait
 				Write-Host "Extracted $($tempDataPath)\$($blob) to $($publicPath) folder"
 			}
 			catch 
@@ -146,7 +146,7 @@ elseif ($migrateMethod -eq "blob")
 			Write-Host "Extracting data from $($tempDataPath)\$($blob) to $($publicPath)..."
 			try 
 			{
-				Expand-Archive -Path "$($tempDataPath)\$($blob)" -DestinationPath $publicPath -Force | Out-Null
+				Start-Process "$($localPath)\7zr.exe" -ArgumentList "x $($tempDataPath)\$($blob) -o$userPath -y" -Wait
 				Write-Host "Extracted $($tempDataPath)\$($blob) to $($publicPath) folder"
 				Write-Host "Removing $($tempDataPath)\$($blob)..."
 				try 
