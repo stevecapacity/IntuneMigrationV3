@@ -42,7 +42,7 @@ Write-Host "MS Graph Authenticated"
 $serialNumber = Get-WmiObject -Class Win32_Bios | Select-Object -ExpandProperty serialNumber
 
 $hostname = $env:COMPUTERNAME
-$activeUsername = (Get-WmiObject Win32_ComputerSystem | Select-Object | username).username
+$activeUsername = (Get-WmiObject Win32_ComputerSystem | Select-Object -ExpandProperty username)
 $objUser = New-Object System.Security.Principal.NTAccount("$activeUsername")
 $strSID = $objUser.Translate([System.Security.Principal.SecurityIdentifier])
 $userSID = $strSID.Value
@@ -68,7 +68,7 @@ Write-Host "Getting current user $($userName) Azure AD object ID..."
 try 
 {
     $userObject = Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/beta/users/$($userName)" -Headers $headers
-    $userId = $userObject.value.id
+    $userId = $userObject.id
     Write-Host "Azure AD user object ID for $($userName) is $($userId)"
 }
 catch 
